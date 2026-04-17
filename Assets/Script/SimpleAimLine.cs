@@ -5,15 +5,15 @@ public class SimpleAimLine : MonoBehaviour
     [Header("Line Settings")]
     public Transform nozzleTransform;
     public LineRenderer lineRenderer;
-    public float fixedLineLength = 5f; // The line will always be this long
+    public float fixedLineLength = 5f;
 
     [Header("Aim Detection")]
     public string fireTagName = "Fire";
     public float requiredHoldTime = 1.5f;
-    public float aimDetectionRange = 10f; // How far the aim check goes
+    public float aimDetectionRange = 10f;
 
     [Header("References")]
-    public TrainingStepUI trainingStepUI;
+    public TrainingStepUI trainingStepUI;   // backup old UI
     public ExtinguisherPin pinSystem;
 
     private float _holdTimer = 0f;
@@ -21,7 +21,6 @@ public class SimpleAimLine : MonoBehaviour
 
     void Start()
     {
-        // Hide the line at the start
         if (lineRenderer != null)
         {
             lineRenderer.enabled = false;
@@ -31,38 +30,41 @@ public class SimpleAimLine : MonoBehaviour
 
     void Update()
     {
-        // Safety checks
         if (nozzleTransform == null || lineRenderer == null || pinSystem == null)
             return;
 
-        // Hide line if pin is not pulled
         if (!pinSystem.isUnlocked)
         {
             lineRenderer.enabled = false;
             _holdTimer = 0f;
+            _aimCompleted = false;
+
+            if (trainingStepUI != null)
+                trainingStepUI.SetAimCorrect(false);
+
+            if (UIManager.instance != null)
+                UIManager.instance.SetAimCorrect(false);
+
             return;
         }
 
-        // Show the line once pin is pulled
         lineRenderer.enabled = true;
 
-        // Stop updating if aim is already completed
-        if (_aimCompleted)
-            return;
-
-        // --------------------------
-        // 1. ALWAYS draw a fixed-length line (NO raycast here!)
-        // --------------------------
         Vector3 lineStart = nozzleTransform.position;
         Vector3 lineEnd = lineStart + nozzleTransform.forward * fixedLineLength;
         lineRenderer.SetPosition(0, lineStart);
         lineRenderer.SetPosition(1, lineEnd);
 
-        // --------------------------
-        // 2. Use a SEPARATE raycast ONLY for detecting fire
-        // --------------------------
+        if (_aimCompleted)
+        {
+            lineRenderer.startColor = Color.blue;
+            lineRenderer.endColor = Color.blue;
+            return;
+        }
+
         RaycastHit hit;
         bool isAimingAtFire = false;
+
         if (Physics.Raycast(lineStart, nozzleTransform.forward, out hit, aimDetectionRange))
         {
             if (hit.collider.CompareTag(fireTagName))
@@ -71,9 +73,6 @@ public class SimpleAimLine : MonoBehaviour
             }
         }
 
-        // --------------------------
-        // 3. Handle aim state and timing
-        // --------------------------
         if (isAimingAtFire)
         {
             _holdTimer += Time.deltaTime;
@@ -83,7 +82,13 @@ public class SimpleAimLine : MonoBehaviour
             if (_holdTimer >= requiredHoldTime)
             {
                 _aimCompleted = true;
-                trainingStepUI.SetAimCorrect(true);
+
+                if (trainingStepUI != null)
+                    trainingStepUI.SetAimCorrect(true);
+
+                if (UIManager.instance != null)
+                    UIManager.instance.SetAimCorrect(true);
+
                 lineRenderer.startColor = Color.blue;
                 lineRenderer.endColor = Color.blue;
             }
@@ -91,6 +96,13 @@ public class SimpleAimLine : MonoBehaviour
         else
         {
             _holdTimer = 0f;
+
+            if (trainingStepUI != null)
+                trainingStepUI.SetAimCorrect(false);
+
+            if (UIManager.instance != null)
+                UIManager.instance.SetAimCorrect(false);
+
             lineRenderer.startColor = Color.red;
             lineRenderer.endColor = Color.red;
         }

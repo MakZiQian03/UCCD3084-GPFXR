@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 public class ExtinguisherPin : MonoBehaviour
@@ -8,29 +8,44 @@ public class ExtinguisherPin : MonoBehaviour
     public float unlockDistance = 0.1f;
     public bool isUnlocked = false;
 
-    private void Awake()
+    private Vector3 originLocalPos;
+    private Quaternion originLocalRot;
+    private Rigidbody rb;
+
+    void Awake()
     {
-        if (grabInteractable == null)
-            grabInteractable = GetComponent<XRGrabInteractable>();
+        rb = GetComponent<Rigidbody>();
+        originLocalPos = transform.localPosition;
+        originLocalRot = transform.localRotation;
     }
 
-    private void Update()
+    void Update()
     {
-        if (!isUnlocked)
-        {
-            float dist = Vector3.Distance(transform.position, lockedPosition.position);
-            if (dist > unlockDistance)
-            {
-                UnlockPin();
-            }
-        }
+        if (!isUnlocked && Vector3.Distance(transform.position, lockedPosition.position) > unlockDistance)
+            Unlock();
     }
 
-    void UnlockPin()
+    void Unlock()
     {
         isUnlocked = true;
-        Debug.Log("Pin removed! Extinguisher is now active.");
-        // Optionally: notify extinguisher script that it can now spray
-        GetComponent<Rigidbody>().isKinematic = false;
+        if (rb != null) rb.isKinematic = false;
+    }
+
+    public void ResetPin()
+    {
+        isUnlocked = false;
+        transform.localPosition = originLocalPos;
+        transform.localRotation = originLocalRot;
+
+        if (rb != null)
+        {
+            // 只重置状态，不修改 Kinematic 物体的速度
+            if (!rb.isKinematic)
+            {
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+            rb.isKinematic = true;
+        }
     }
 }
