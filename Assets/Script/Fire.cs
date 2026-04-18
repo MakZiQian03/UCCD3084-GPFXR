@@ -8,13 +8,15 @@ public class Fire : MonoBehaviour
 
     [Header("Settings")]
     public float extinguishSpeed = 0.1f;
-    private float _currentIntensity = 1f;
+    private float _currentIntensity = 2f;
+    private float lastHitTime = 0f;
+    [SerializeField] private float recoverySpeed = 0.08f; // fire regrows if not sprayed
 
     private bool _isExtinguished = false;
 
     void Start()
     {
-        _currentIntensity = 1f;
+        _currentIntensity = 2f;
         _isExtinguished = false;
         ShowFire(true);
     }
@@ -26,14 +28,26 @@ public class Fire : MonoBehaviour
         foreach (var p in fireParticles)
         {
             var emission = p.emission;
-            emission.rateOverTime = _currentIntensity * 10;
+            emission.rateOverTime = _currentIntensity * 100;
+
+            var main = p.main;
+            main.startSize = _currentIntensity;
         }
 
         if (fireLight != null)
-            fireLight.intensity = _currentIntensity;
+            fireLight.intensity = _currentIntensity * 2f;
 
-        if (_currentIntensity <= 0)
-            Extinguish();
+        if (_currentIntensity <= 0.05f)
+        {
+             _currentIntensity = 0;
+             Extinguish();
+        }
+
+        if (Time.time - lastHitTime > 0.2f)
+        {
+            _currentIntensity += recoverySpeed * Time.deltaTime;
+            _currentIntensity = Mathf.Clamp01(_currentIntensity);
+        }
     }
 
     public void ReduceIntensity(float amount)
@@ -51,7 +65,6 @@ public class Fire : MonoBehaviour
             UIManager.instance.SetFireExtinguished(true);
     }
 
-    // 🔥 这个方法保证重启后火焰100%重新燃烧
     public void ResetFire()
     {
         CancelInvoke();
@@ -87,8 +100,11 @@ public class Fire : MonoBehaviour
             fireLight.enabled = enable;
     }
 
-    // 给外部调用的固定方法（不报错）
     public bool IsExtinguished() => _isExtinguished;
     public float GetCurrentIntensity() => _currentIntensity;
-    public void SetIntensity(float val) => _currentIntensity = Mathf.Clamp01(val);
+    public void SetIntensity(float val)
+{
+    _currentIntensity = Mathf.Clamp01(val);
+    lastHitTime = Time.time;
+}
 }

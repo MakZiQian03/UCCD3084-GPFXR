@@ -16,7 +16,7 @@ public class ExtinguisherController : MonoBehaviour
 
     void Update()
     {
-        bool keyboardInput = Keyboard.current != null && Keyboard.current.spaceKey.isPressed;
+        bool keyboardInput = Keyboard.current != null && Keyboard.current.kKey.isPressed;
         bool vrTriggerInput = IsAnyVRTriggerPressed();
 
         bool canSpray = true;

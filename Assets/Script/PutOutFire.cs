@@ -8,7 +8,7 @@ public class PutOutFire : MonoBehaviour
     [SerializeField] private ParticleSystem sprayParticleSystem;
 
     [Header("Fire Extinguishing")]
-    [SerializeField] private float extinguishRate = 0.5f; // How fast fire is extinguished per particle hit
+    [SerializeField] private float extinguishRate = 0.1f; // How fast fire is extinguished per particle hit
     [SerializeField] private LayerMask fireLayer = -1; // Layer for fire objects
 
     [Header("Debug")]
@@ -136,7 +136,7 @@ public class PutOutFire : MonoBehaviour
 
         int particleHits = GetParticleHitCount(hitObject);
 
-        float extinguishAmount = extinguishRate * Mathf.Min(particleHits, 3) * Time.deltaTime;
+        float extinguishAmount = extinguishRate * Time.deltaTime;
 
         float currentIntensity = fire.GetCurrentIntensity();
         float newIntensity = Mathf.Max(0f, currentIntensity - extinguishAmount);

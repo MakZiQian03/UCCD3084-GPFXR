@@ -3,17 +3,17 @@ using UnityEngine.Events;
 using UnityEngine.XR.Interaction.Toolkit;
 
 /// <summary>
-/// An interactable that can be pressed by a direct interactor
+/// An interactable that can be  by a direct interactor
 /// </summary>
 public class XRButton : XRBaseInteractable
 {
     [Tooltip("The transform of the visual component of the button")]
     public Transform buttonTransform = null;
 
-    [Tooltip("The distance the button can be pressed")]
+    [Tooltip("The distance the button can be ")]
     public float pressDistance = 0.1f;
 
-    // When the button is pressed
+    // When the button is 
     public UnityEvent OnPress = new UnityEvent();
 
     // When the button is released
